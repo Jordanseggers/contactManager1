@@ -1,7 +1,6 @@
 class Model {
   constructor() {
-    this.contacts
-    this.getContacts();
+    this.contacts;
   }
 
   async getContacts () {
@@ -9,10 +8,8 @@ class Model {
       method: 'GET'
     }).then(contacts => contacts.json())
       .catch(() => alert('can\'t get contacts'));
-    console.log(contacts);
+ 
     return contacts;
-    //this.contacts = await response.json();
-    //console.log(this.contacts); //test
   }
 }
 
@@ -35,9 +32,9 @@ class View {
 
   async displayContacts (contacts) {
     //Delete any existing nodes
-    // while (this.contactsList.firstChild) {
-    //  this.contactsList.removeChild(this.contactsList.firstChild);
-    // }
+    while (this.contactsList.firstChild) {
+     this.contactsList.removeChild(this.contactsList.firstChild);
+    }
     if (contacts.length === 0) {
       let p = this.createElement('p');
       p.textContent = "There are no contacts.";
@@ -46,7 +43,7 @@ class View {
       //add contact nodes
       contacts.forEach(contact => {
         let li = this.createElement('li');
-        li.textContent = `${String(contact.id)}`;
+        li.textContent = `${String(contact.full_name)}`;
         this.contactsList.append(li);
       });
     }
@@ -68,7 +65,6 @@ class Controller {
 
   async addContactsToPage() {
     let contacts = await this.model.getContacts();
-    console.log(contacts.length);
     this.view.displayContacts(contacts);
   }
 }
