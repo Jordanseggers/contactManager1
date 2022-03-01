@@ -117,7 +117,6 @@ function contactForm (existingId) {
     nameField.setAttribute("placeholder", `${contact["full_name"]}`);
     emailField.setAttribute("placeholder", `${contact["email"]}`);
     phoneField.setAttribute("placeholder", `${contact["phone_number"]}`);
-    console.log(contact["tags"] === '');
     tagField.setAttribute("placeholder", `${tagsToDisplayString(contact["tags"])}`);
   }
   
@@ -170,7 +169,6 @@ async function deleteContact (element) {
 }
 
 function sanitizeObject (object) {
-  console.log(object);
   let keys = Object.keys(object);
   let newObj = {};
   keys.forEach(key => {
@@ -215,38 +213,12 @@ function filterContacts() {
     } else {
       let name = card.querySelector('h3').textContent;
       let includes = value;
-      console.log(includes);
-      console.log(new RegExp(includes, 'i'));
       if (!name.match(new RegExp(includes))) {
         card.classList.toggle('hide', true);
       }
     }
   })
 }
-
-// function tagForm () {
-//   let formHTML = getElement("#new-tag").innerHTML;
-//   let formTemplate = Handlebars.compile(formHTML);
-
-//   let div = createElement('div');
-//   div.innerHTML = formTemplate({});
-
-//   let currentTags = div.querySelector('.current-tags');
-//   tagOptions.forEach(tag => {
-//     let dd = createElement('dd');
-//     dd.textContent = tag;
-//     currentTags.append(dd);
-//   });
-
-//   app.innerHTML = '';
-//   app.append(div);
-
-//   form = getElement('form');
-//   form.addEventListener('submit', (event) => {
-//     let newTag = event.target.tag.value;
-//     console.log(newTag);
-//   })
-// }
 
 document.addEventListener('DOMContentLoaded', () => {
   displayContacts();
