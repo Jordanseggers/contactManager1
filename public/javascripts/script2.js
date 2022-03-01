@@ -30,7 +30,7 @@ function getElement(selector) {
   return element;
 }
 
-function convertTags (contacts) {
+function tagsToArray (contacts) {
   let contactsArr = Array.prototype.slice.call(contacts);
   contactsArr.forEach(contact => {
     if(contact.tags) {
@@ -38,6 +38,20 @@ function convertTags (contacts) {
     }
   });
   return contactsArr;
+}
+
+function tagsToDisplayString (arrayOfTags) {
+  if (arrayOfTags === '') {
+    return '';
+  }
+  return arrayOfTags.join(', ') + ', ...';
+}
+
+function tagsToServerString(tagString) {
+  let tags = tagString.split(',').map(tag => {
+    return tag.trim();
+  });
+  return tags.join(',');
 }
 
 async function displayContacts () {
@@ -52,7 +66,7 @@ async function displayContacts () {
     noContacts.textContent = "There are no contacts.";
     contactsList.append(noContacts);
   } else {
-    contacts = convertTags(contacts);
+    contacts = tagsToArray(contacts);
     contactsList.innerHTML = contactTemplate({contacts:contacts});
   }
 
@@ -66,8 +80,26 @@ async function displayContacts () {
     } else if (event.target.classList.contains("edit-contact")) {
       let contactId = event.target.parentNode.dataset.contactId;
       contactForm(Number(contactId));
+    } else if (event.target.classList.contains("tag")) {
+      event.preventDefault();
+      let tag = event.target.textContent;
+      filterByTag(tag);
     }
   });
+}
+
+function filterByTag(tag) {
+  let cards = document.querySelectorAll(".card");
+  let cardsArr = Array.prototype.slice.call(cards);
+
+  cardsArr.forEach(card => {
+    let cardTags = Array.prototype.slice.call(card.querySelectorAll('.tag')).map(tag => {
+      return tag.textContent;
+    });
+    if (!cardTags.includes(tag)) {
+      card.classList.toggle('hide', true);
+    }
+  })
 }
 
 function contactForm (existingId) {
@@ -81,9 +113,12 @@ function contactForm (existingId) {
     let nameField = div.querySelector('.contact-name-input');
     let emailField = div.querySelector('.contact-email-input');
     let phoneField = div.querySelector('.contact-phone-input');
+    let tagField = div.querySelector('.tag-input');
     nameField.setAttribute("placeholder", `${contact["full_name"]}`);
     emailField.setAttribute("placeholder", `${contact["email"]}`);
     phoneField.setAttribute("placeholder", `${contact["phone_number"]}`);
+    console.log(contact["tags"] === '');
+    tagField.setAttribute("placeholder", `${tagsToDisplayString(contact["tags"])}`);
   }
   
   app.innerHTML = '';
@@ -112,7 +147,7 @@ async function addContact (event) {
   event.preventDefault();
   console.log('submit clicked');
   let formData = new FormData(form);
-  let jsonData = formDataToJSON(formData);
+  let jsonData = fixTagsForServer(formDataToJSON(formData)); //this is also edited
 
   await fetch('api/contacts', {
     method: 'POST',
@@ -135,6 +170,7 @@ async function deleteContact (element) {
 }
 
 function sanitizeObject (object) {
+  console.log(object);
   let keys = Object.keys(object);
   let newObj = {};
   keys.forEach(key => {
@@ -145,12 +181,17 @@ function sanitizeObject (object) {
   return newObj;
 }
 
+function fixTagsForServer (object) {
+  object["tags"] = tagsToServerString(object["tags"]);
+  return object;
+}
+
 async function editContact (event) {
   event.preventDefault();
   let contactId = event.target.dataset.contactId;
   
   let formData = new FormData(event.target);
-  let jsonData = formDataToJSON(formData);
+  let jsonData = fixTagsForServer(formDataToJSON(formData)); //this line is edited
   let usefulFormData = sanitizeObject(jsonData);
   usefulFormData.id = Number(contactId);
 
@@ -170,7 +211,6 @@ function filterContacts() {
   let cardsArr = Array.prototype.slice.call(cards);
   cardsArr.forEach(card => {
     if (value === "") {
-      console.log(`unhide all`);
       card.classList.toggle('hide', false);
     } else {
       let name = card.querySelector('h3').textContent;
@@ -178,7 +218,6 @@ function filterContacts() {
       console.log(includes);
       console.log(new RegExp(includes, 'i'));
       if (!name.match(new RegExp(includes))) {
-        console.log(`hiding card ${name}`);
         card.classList.toggle('hide', true);
       }
     }
