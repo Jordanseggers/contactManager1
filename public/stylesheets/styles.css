@@ -345,3 +345,6 @@ hr {
   margin-inline-end: auto;
   overflow: hidden;
 }
+.hide {
+  display: none;
+}
